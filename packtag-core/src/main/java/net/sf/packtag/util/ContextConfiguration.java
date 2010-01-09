@@ -64,7 +64,7 @@ import net.sf.packtag.cache.provider.DefaultCacheProvider;
  * Keeps track of the configuration settings in the /WEB-INF/packtag.properties and /WEB-INF/packtag.user.properties file.
  * Note: The configuration is not longet stored in the web.xml.
  *
- * @author  Daniel Galán y Martins
+ * @author  Daniel Galï¿½n y Martins
  * @version $Revision: 1.11 $
  */
 public class ContextConfiguration {
@@ -258,6 +258,11 @@ public class ContextConfiguration {
 
 	public static String getCacheProviderPath(final ServletContext context) {
 		return getProperty(context, "cache.provider.path");
+	}
+
+
+	public static String getDebugCookie(final ServletContext context) {
+		return getProperty(context, "debug.cookie");
 	}
 
 }

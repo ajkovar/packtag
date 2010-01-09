@@ -56,6 +56,8 @@ import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.JspWriter;
@@ -66,6 +68,7 @@ import net.sf.packtag.cache.Resource;
 import net.sf.packtag.implementation.DisabledPackStrategy;
 import net.sf.packtag.strategy.PackException;
 import net.sf.packtag.strategy.PackStrategy;
+import net.sf.packtag.util.ContextConfiguration;
 import net.sf.packtag.util.FileFetcher;
 import net.sf.packtag.util.HttpHeader;
 import net.sf.packtag.util.URIUtils;
@@ -131,7 +134,7 @@ public abstract class PackTag extends BaseTag {
 			writeResouce(pageContext.getOut(), absolutePath);
 		}
 		else {
-			if (isEnabled()) {
+			if (isEnabled() && !isDebugCookieSet()) {
 				reloaded = handleSingleResourceDelegate(absolutePath);
 				Resource resource = PackCache.getResourceByAbsolutePath(getServletContext(), absolutePath);
 
@@ -183,7 +186,7 @@ public abstract class PackTag extends BaseTag {
 			reloaded = true;
 		}
 
-		if (isEnabled()) {
+		if (isEnabled() && !isDebugCookieSet()) {
 			if (writePackedResource && (!isTrackingResources() || !isResourceDelivered(absolutePath))) {
 				writeResouce(pageContext.getOut(), resource.getMappedPath());
 				addDeliveredResource(resource.getAbsolutePath());
@@ -197,6 +200,26 @@ public abstract class PackTag extends BaseTag {
 			}
 		}
 		return reloaded;
+	}
+
+
+	protected boolean isDebugCookieSet() {
+
+		Cookie[] cookies = ((HttpServletRequest)pageContext.getRequest()).getCookies();
+		String debugCookieName = ContextConfiguration.getDebugCookie(pageContext.getServletContext());
+
+		if (cookies != null && debugCookieName != null) {
+
+			for (int i = 0; i < cookies.length; i++) {
+				Cookie cookie = cookies[i];
+
+				if (debugCookieName.equals(cookie.getName()) && "true".equals(cookie.getValue())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 
@@ -232,7 +255,7 @@ public abstract class PackTag extends BaseTag {
 
 			// just write the combined resource if enabled, otherwise they
 			// are already written to the output by handleSingleResource(..)
-			if (isEnabled()) {
+			if (isEnabled() && !isDebugCookieSet()) {
 				Resource resource = handleMultipleAbsolutePaths(reloaded, absolutePaths);
 				if (!isTrackingResources() || !areResourcesDelivered(absolutePaths)) {
 					writeResouce(pageContext.getOut(), resource.getMappedPath());
